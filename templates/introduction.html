@@ -6,15 +6,17 @@
 <body>
 
 <h1>В разработке...</h1>
+<h2>Чтобы увидеть новости, нажми "обновить"!🤍</h2>
 <form method="post">
     <select name="adress">
         <option value="english4allofyou1"> English </option>
-        <option value="habr_com"> Хабр </option>
+        <option value="english"> English language </option>
      </select>
     <input type="submit" value="обновить">
 </form>
-<script async src="https://telegram.org/js/telegram-widget.js?19" data-telegram-post={{ url }} data-width="100%"></script>
-
+{% for url in urls%}
+    <script async src="https://telegram.org/js/telegram-widget.js?19" data-telegram-post={{ url }} data-width="100%"></script>
+{% endfor %}
 
 
 </body>

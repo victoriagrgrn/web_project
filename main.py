@@ -55,18 +55,25 @@ def latest_news(channel_name):
     soup = BeautifulSoup(r.text, 'lxml')
     link = soup.find_all('a')
     url = link[-1]['href']
+    url = url.replace('https://t.me/', '')
     print(url)
+    channel_name, news1_id = url.split('/')
+    urls = []
+    for i in range(5):
+        urls.append(f'{channel_name}/{int(news1_id) - i}')
+    return urls
+
 
 
 @app.route("/introduction", methods=['GET', 'POST'])
 def introduction():
-    url = 'english4allofyou1/2'
+    url = 'english4allofyou1/4'
     if request.method == 'GET':
         return render_template("introduction.html", url=url)
     else:
         channel_name = request.form['adress']
-        latest_news(channel_name)
-        return render_template("introduction.html", url=url)
+        urls = latest_news(channel_name)
+        return render_template("introduction.html", urls=urls)
 
 
 @app.route('/register', methods=['GET', 'POST'])
