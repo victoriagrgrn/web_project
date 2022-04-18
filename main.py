@@ -1,5 +1,7 @@
 import os
 
+import requests
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, redirect, request, abort, make_response, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user
 from flask_login import current_user
@@ -45,10 +47,26 @@ def index():
     return render_template("index.html", news=news)
 
 
-@app.route("/introduction")
-def introduction():
-    return render_template("introduction.html")
+def latest_news(channel_name):
+    telegram_url = 'https://t.me/s/'
+    url = telegram_url+channel_name
+    r = requests.get(url)
+    print(r.text)
+    soup = BeautifulSoup(r.text, 'lxml')
+    link = soup.find_all('a')
+    url = link[-1]['href']
+    print(url)
 
+
+@app.route("/introduction", methods=['GET', 'POST'])
+def introduction():
+    url = 'english4allofyou1/2'
+    if request.method == 'GET':
+        return render_template("introduction.html", url=url)
+    else:
+        channel_name = request.form['adress']
+        latest_news(channel_name)
+        return render_template("introduction.html", url=url)
 
 
 @app.route('/register', methods=['GET', 'POST'])
