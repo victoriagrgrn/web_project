@@ -8,6 +8,6 @@ from wtforms.validators import DataRequired
 class NewsForm(FlaskForm):
     title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField("Содержание")
-    file = FileField("Файл композиции", validators=[DataRequired()])
+    file = FileField("Файл", validators=[DataRequired()])
     is_private = BooleanField("Личное")
     submit = SubmitField('Применить')

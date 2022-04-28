@@ -1,14 +1,29 @@
 {% extends "base.html" %}
 
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+
 {% block content %}
-<h1>{{title}}</h1>
-<form action="" method="post">
+<h1 style="padding-top:40px; padding-bottom:40px">{{ title }}</h1>
+<form action="" method="post" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <p>
-        {{ form.title.label }}<br>
-        {{ form.title(class="form-control") }}<br>
-        {% for error in form.title.errors %}
+        {{ form.author.label }}<br>
+        {{ form.author(class="form-control") }}<br>
+        {% for error in form.author.errors %}
             <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control") }}<br>
+        {% for error in form.name.errors %}
+            <p content="alert alert-danger" role="alert">
                 {{ error }}
             </p>
         {% endfor %}
@@ -22,7 +37,7 @@
             </p>
         {% endfor %}
     </p>
-        <p>
+    <p>
         {{ form.file.label }}<br>
         {{ form.file(class="form-control") }}<br>
         {% for error in form.file.errors %}
@@ -31,7 +46,6 @@
             </p>
         {% endfor %}
     </p>
-    <p>{{ form.is_private() }} {{ form.is_private.label }}</p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     {{message}}
 </form>

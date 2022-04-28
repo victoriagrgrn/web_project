@@ -2,21 +2,29 @@ import os
 
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, redirect, request, abort, make_response, jsonify
-from flask_login import LoginManager, login_user, login_required, logout_user
-from flask_login import current_user
+from flask import Flask, render_template, redirect, request, abort
+from flask_login import LoginManager, login_required, logout_user, login_user, current_user
 from werkzeug.utils import secure_filename
 
-from forms.user import RegisterForm, LoginForm
-from forms.news import NewsForm
-from data.news import News
+import datetime as dt
+
+
+from forms.user_forms import RegisterForm, LoginForm
+from forms.news_forms import PublishForm
 from data.users import User
+from data.news import News
 from data import db_session
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['UPLOAD_FOLDER'] = 'static/foto'
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+def main():
+    db_session.global_init("db/eng.db")
+    app.run()
 
 
 @login_manager.user_loader
@@ -25,26 +33,29 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
-def main():
-    db_session.global_init("db/blogs.db")
-    app.run()
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@app.route("/")
+@app.route('/')
+@app.route('/index')
 def index():
-    db_sess = db_session.create_session()
-    if current_user.is_authenticated:
-        news = db_sess.query(News).filter(
-            (News.user == current_user) | (News.is_private != True))
-    else:
-        news = db_sess.query(News).filter(News.is_private != True)
+    return render_template('title.html', title='EngEdu')
 
-    return render_template("index.html", news=news)
+
+@app.route('/main/')
+def site_main():
+    db_session.global_init('db/dataB.db')
+    db_sess = db_session.create_session()
+    news = []
+    for new in db_sess.query(News).all():
+        publisher_name = db_sess.query(User).filter(User.id == new.publisher).first()
+        publisher_name = publisher_name.surname + ' ' + publisher_name.name
+        news.append([new.publisher, new.author, new.file, new.name, new.content, publisher_name])
+    return render_template('main.html', news=news)
 
 
 def latest_news(channel_name):
@@ -64,6 +75,15 @@ def latest_news(channel_name):
     return urls
 
 
+@app.route("/about", methods=['GET', 'POST'])
+def about():
+    return render_template("about.html")
+
+
+@app.route("/articles", methods=['GET', 'POST'])
+def articles():
+    return render_template("articles.html")
+
 
 @app.route("/introduction", methods=['GET', 'POST'])
 def introduction():
@@ -77,20 +97,21 @@ def introduction():
 
 
 @app.route('/register', methods=['GET', 'POST'])
-def reqister():
+def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        if form.password.data != form.password_again.data:
+        if form.password.data != form.repeat_password.data:
             return render_template('register.html', title='Регистрация', form=form,
-                                   message="Пароли не совпадают")
+                                   message="Пароли не совпадают!")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('register.html', title='Регистрация', form=form,
-                                   message="Такой пользователь уже есть")
+                                   message="Такой пользователь уже зарегистрирован!")
         user = User(
-            name=form.name.data,
             email=form.email.data,
-            about=form.about.data
+            surname=form.surname.data,
+            name=form.name.data,
+            age=form.age.data
         )
         user.set_password(form.password.data)
         db_sess.add(user)
@@ -107,75 +128,38 @@ def login():
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+            return redirect("/main")
         return render_template('login.html',
-                               message="Неправильный логин или пароль",
+                               message="Ошибка! Логин или пароль введены неверно",
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
 
 
-@app.route('/logout')
+@app.route('/publish',  methods=['GET', 'POST'])
 @login_required
-def logout():
-    logout_user()
-    return redirect("/")
-
-
-@app.route('/news', methods=['GET', 'POST'])
-@login_required
-def add_news():
-    form = NewsForm()
+def publish():
+    form = PublishForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        news = News()
-        news.title = form.title.data
-        news.content = form.content.data
-        news.is_private = form.is_private.data
-        news.file = form.file.data.filename
-        form.file.data.save(f'static/forfile/{form.file.data.filename}')
-        current_user.news.append(news)
-        db_sess.merge(current_user)
+        file = form.file.data
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        news = News(
+            publisher=current_user.id,
+            author=form.author.data,
+            name=form.name.data,
+            content=form.content.data,
+            file=f'static/foto/{filename}',
+            publish_date=dt.datetime.now(),
+        )
+        db_sess.add(news)
         db_sess.commit()
-        return redirect('/')
-    return render_template('news.html', title='Добавление новости',
+        return redirect('/main')
+    return render_template('news.html', title='Добавление поста',
                            form=form)
 
 
-@app.route('/news/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit_news(id):
-    form = NewsForm()
-    if request.method == "GET":
-        db_sess = db_session.create_session()
-        news = db_sess.query(News).filter(News.id == id,
-                                          News.user == current_user
-                                          ).first()
-        if news:
-            form.title.data = news.title
-            form.content.data = news.content
-            form.is_private.data = news.is_private
-        else:
-            abort(404)
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        news = db_sess.query(News).filter(News.id == id,
-                                          News.user == current_user
-                                          ).first()
-        if news:
-            news.title = form.title.data
-            news.content = form.content.data
-            news.is_private = form.is_private.data
-            db_sess.commit()
-            return redirect('/')
-        else:
-            abort(404)
-    return render_template('news.html',
-                           title='Редактирование новости',
-                           form=form
-                           )
-
-
-@app.route('/news_delete/<int:id>', methods=['GET', 'POST'])
+@app.route('/audio_delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_delete(id):
     db_sess = db_session.create_session()

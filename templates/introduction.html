@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>В разработке...</h1>
+<h1><a href="/about"><font color="black">К разделам</font></a></h1>
 <h2>Чтобы увидеть новости, нажми "обновить"!🤍</h2>
 <form method="post">
     <select name="adress">
         <option value="english4allofyou1"> English </option>
         <option value="english"> English language </option>
         <option value="wow_english"> wow_english </option>
+        <option value="LiveEnglish"> LiveEnglish </option>
      </select>
     <input type="submit" value="обновить">
 </form>
+
+
 {% for url in urls%}
     <script async src="https://telegram.org/js/telegram-widget.js?19" data-telegram-post={{ url }} data-width="100%"></script>
 {% endfor %}
