@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/css/bootstrap-select.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/js/bootstrap-select.min.js"></script>
+
+
+</head>
+
+<body>
+<div class="container">
+<h1><a href="/about">Выберите раздел для изучения</a></h1>
+<div class="list-group">
+  <a href="/introduction" class="list-group-item list-group-item-action">Полезные телеграмм-каналы</a>
+  <a href="/articles" class="list-group-item list-group-item-action">Статьи</a>
+  <a href="#" class="list-group-item list-group-item-action">Викторины и тесты</a>
+</div>
+
+</div>
+</body>
+</html>
+
+
+
+{% endblock %}

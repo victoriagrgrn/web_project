@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    English
+{% endblock %}
+
+
+{% block content %}
+    <h2 align="center" style="margin-top: 40px; margin-bottom: 40px">Лента</h2>
+    {% if current_user.is_authenticated %}
+        <div style="text-align:center">
+            <a href="/publish" class="btn btn-warning"><font size="5" face="Trebuchet MS">Новый пост</font></a>
+        </div>
+    {% else %}
+        <div style="text-align:center">
+            <font size="5" face="Trebuchet MS">Авторизуйтесь, чтобы опубликовать пост!</font>
+        </div>
+    {% endif %}
+    {% for new in news %}
+        <div class="col-md6 border rounded" style="margin-top: 40px">
+            <h4 style="padding-top: 20px;padding-bottom: 10px;padding-left: 20px">{{ new[3] }}</h4>
+            <img class="new-main" src="/{{ new[2] }}">
+            <p style="padding-left: 20px">Автор: {{ new[1] }}</p>
+            <p style="padding-left: 20px">Пост: {{ new[4] }}</p>
+        </div>
+        {% if current_user.is_authenticated and current_user == new.user %}
+        <div>
+            <a href="/audio/{{ audio.id }}" class="btn btn-warning">
+                Изменить
+            </a>
+            <a href="/audio_delete/{{ audio.id }}" class="btn btn-danger">
+                Удалить
+            </a>
+        </div>
+{% endif %}
+    {% endfor %}
+
+{% endblock %}
